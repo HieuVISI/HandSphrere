@@ -22,8 +22,15 @@ class VideoProcessor(VideoTransformerBase):
 
         return img
 
+from streamlit_webrtc import webrtc_streamer, VideoTransformerBase
+
+class VideoProcessor(VideoTransformerBase):
+    def transform(self, frame):
+        img = frame.to_ndarray(format="bgr24")
+        return img
+
 webrtc_streamer(
-    key="hand-demo",
+    key="demo",
     video_processor_factory=VideoProcessor,
     media_stream_constraints={"video": True, "audio": False},
     rtc_configuration={
@@ -39,5 +46,5 @@ webrtc_streamer(
                 "credential": "openrelayproject"
             }
         ]
-    },
+    }
 )
