@@ -8,6 +8,21 @@ st.title("🎮 Hand Control Sphere Demo (Webcam qua Browser)")
 radius = 100
 color = (0, 255, 0)
 
+rtc_configuration = {
+    "iceServers": [
+        {"urls": ["stun:stun.l.google.com:19302"]},
+        {
+            "urls": [
+                "turn:openrelay.metered.ca:80",
+                "turn:openrelay.metered.ca:443",
+                "turn:openrelay.metered.ca:443?transport=tcp"
+            ],
+            "username": "openrelayproject",
+            "credential": "openrelayproject"
+        }
+    ]
+}
+
 class VideoProcessor(VideoTransformerBase):
     def __init__(self):
         self.radius = 100
