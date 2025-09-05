@@ -1,4 +1,4 @@
 streamlit
-opencv-python-headless
+opencv-python
 mediapipe==0.10.20
 numpy
