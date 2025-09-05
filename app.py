@@ -1,10 +1,10 @@
 # file: app.py
 import streamlit as st
 import cv2
-import mediapipe as mp
 import numpy as np
+from cvzone.HandTrackingModule import HandDetector
 
-st.title("🎮 Hand Control Sphere Demo")
+st.title("🎮 Hand Control Sphere Demo (cvzone)")
 
 # Sidebar tùy chọn
 st.sidebar.markdown("### ⚙️ Settings")
@@ -12,16 +12,12 @@ run = st.sidebar.checkbox("Run camera", value=False)
 radius_min = st.sidebar.slider("Min radius", 30, 100, 50)
 radius_max = st.sidebar.slider("Max radius", 150, 300, 200)
 
-mp_hands = mp.solutions.hands
-hands = mp_hands.Hands(
-    max_num_hands=2,
-    min_detection_confidence=0.7,
-    min_tracking_confidence=0.7
-)
+# Detector tay
+detector = HandDetector(detectionCon=0.7, maxHands=2)
 
-# Hàm tính khoảng cách
+# Hàm tính khoảng cách giữa 2 điểm (x, y)
 def distance(a, b):
-    return np.linalg.norm(np.array([a.x - b.x, a.y - b.y]))
+    return np.linalg.norm(np.array(a) - np.array(b))
 
 radius = 100
 color = (0, 255, 0)
@@ -30,7 +26,7 @@ FRAME_WINDOW = st.image([])
 
 cap = None
 if run:
-    cap = cv2.VideoCapture(0)  # webcam
+    cap = cv2.VideoCapture(0)  # mở webcam
 else:
     st.info("Click 'Run camera' để bật webcam")
 
@@ -41,21 +37,22 @@ while run and cap.isOpened():
     frame = cv2.flip(frame, 1)
     h, w, _ = frame.shape
 
-    # Mediapipe xử lý
-    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = hands.process(rgb)
+    # Detect tay
+    hands, frame = detector.findHands(frame)
 
-    if results.multi_hand_landmarks and results.multi_handedness:
-        for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
-            label = handedness.classification[0].label  # Left / Right
-            thumb = hand_landmarks.landmark[4]
-            index = hand_landmarks.landmark[8]
+    if hands:
+        for hand in hands:
+            lmList = hand["lmList"]  # 21 keypoints
+            handType = hand["type"]  # Left / Right
 
-            if label == "Left":
+            thumb = lmList[4][:2]   # (x, y)
+            index = lmList[8][:2]   # (x, y)
+
+            if handType == "Left":
                 d = distance(thumb, index)
-                radius = int(np.clip(d * 500, radius_min, radius_max))
-            elif label == "Right":
-                ix, iy = int(index.x * w), int(index.y * h)
+                radius = int(np.clip(d, radius_min, radius_max))
+            elif handType == "Right":
+                ix, iy = index
                 if (ix - w//2)**2 + (iy - h//2)**2 <= radius**2:
                     color = tuple(np.random.randint(0, 255, 3).tolist())
 
