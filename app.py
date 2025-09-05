@@ -1,6 +1,7 @@
 # file: app.py
 import streamlit as st
 import cv2
+print("OpenCV version:", cv2.__version__)
 import mediapipe as mp
 import numpy as np
 
